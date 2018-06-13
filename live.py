@@ -97,7 +97,7 @@ def main(args, config):
     sys.exit(0)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('twitch channel live recorder')
+    parser = argparse.ArgumentParser(description = 'twitch channel live recorder')
 
     parser.add_argument('-c', '--config', type = str, default = None, help = 'configuration file')
     parser.add_argument('channel_name')

@@ -9,7 +9,7 @@ import argparse
 import twdl
 
 if __name__=="__main__":
-    parser = argparse.ArgumentParser('twitch vod downloader')
+    parser = argparse.ArgumentParser(description = 'twitch vod downloader')
 
     typeGroup = parser.add_mutually_exclusive_group(required=True)
     ffmpegGroup = parser.add_argument_group('ffmpeg', 'uses ffmpeg to download the vod portion using vod -id')
