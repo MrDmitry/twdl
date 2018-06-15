@@ -29,6 +29,7 @@ def WorkerConcat(processing_queue, concat_queue):
 
             with subprocess.Popen(('ffmpeg', '-i', last_tmp,) + Utils.copy_options + (output_file,), stdout = subprocess.PIPE, stderr = subprocess.PIPE, preexec_fn = Utils.ignore_sigint) as ffmpeg:
                 exit_code = ffmpeg.wait()
+                __log('finalization complete:', exit_code, stream)
 
                 if exit_code is not 0:
                     out, err = ffmpeg.communicate()
@@ -135,6 +136,7 @@ def WorkerConcat(processing_queue, concat_queue):
             # or if last_item was reset, finalize current stream
             elif last_item is None:
                 finalize_stream(stream, last_tmp)
+                last_tmp = None
                 continue
 
         __log(stream, 'concat', len(ts_queue), 'segments:', ', '.join(str(ts.id) for ts in ts_queue))
@@ -183,6 +185,10 @@ def WorkerConcat(processing_queue, concat_queue):
         last_tmp = output_tmp
 
         __log(stream, 'concat completed')
+
+        if last_item is None:
+            finalize_stream(stream, last_tmp)
+            last_tmp = None
 
     finalize_stream(stream, last_tmp)
 

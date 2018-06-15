@@ -96,11 +96,21 @@ def WorkerM3U8(headers, stream_queue, dl_queue):
             segments[stream.root] = -1
 
         m3u8_obj = get_playlists(stream.channel)
+        r = None
         if m3u8_obj:
             for p in m3u8_obj.playlists:
                 if 'source' in p.media[0].name:
                     url = p.uri
-                    r = requests.get(url, headers = headers)
+                    try:
+                        r = requests.get(url, headers = headers)
+                    except:
+                        e = sys.exc_info()[0]
+                        __log('exception caught:', e)
+                        time.sleep(0.2)
+                        stream_queue.task_done()
+                        stream_queue.put(stream)
+                        continue
+
                     m3u8_data = m3u8.loads(r.text)
 
                     i = m3u8_data.media_sequence

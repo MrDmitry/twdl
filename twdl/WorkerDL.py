@@ -28,7 +28,15 @@ def WorkerDL(dl_queue, processing_queue, tc_queue):
         processing_queue.put((ts, ts))
 
         filepath = ts.tsFilepath()
-        r = requests.get(ts.url, stream = True)
+
+        try:
+            r = requests.get(ts.url, stream = True)
+        except:
+            e = sys.exc_info()[0]
+            __log('exception caught:', e)
+            dl_queue.task_done()
+            dl_queue.put((ts, ts))
+            continue
 
         try:
             with open(filepath, 'wb') as f:

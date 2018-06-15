@@ -6,6 +6,7 @@
 
 import json
 import os
+import random
 import requests
 import sys
 
@@ -19,7 +20,7 @@ def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
         If there is a live stream going, checks status every 7 seconds,
         otherwise checks every 2 seconds
     """
-    STREAM_API = 'https://api.twitch.tv/kraken/streams/{channel}'
+    STREAM_API = 'https://api.twitch.tv/helix/streams/?user_login={channel}&p={random}'
 
     def __log(*argv):
         print('[worker]', '[stream]', datetime.now(), *argv)
@@ -33,7 +34,7 @@ def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
     meta = None
 
     while not stopSignal.isSet():
-        url = STREAM_API.format(channel = channel_name)
+        url = STREAM_API.format(channel = channel_name, random = random.randint(0,1E7))
 
         try:
             meta_raw = requests.get(url, headers = headers)
@@ -43,12 +44,12 @@ def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
             __log('exception caught:', e)
             continue
 
-        if 'stream' not in meta:
+        if 'data' not in meta:
             __log(json.dumps(meta, indent = 4))
             continue
 
-        if meta['stream']:
-            root = os.path.join(root_dir, channel_name, '{id}'.format(id = meta['stream']['_id']))
+        if len(meta['data']) > 0:
+            root = os.path.join(root_dir, channel_name, '{id}'.format(id = meta['data'][0]['id']))
 
             ts_path = os.path.join(root, Utils.TS_DIR)
             tc_path = os.path.join(root, Utils.TC_DIR)
@@ -58,7 +59,7 @@ def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
             Utils.create_dir_if_needed(tc_path)
             Utils.create_dir_if_needed(log_path)
 
-            streamInfo = Stream(root, channel_name, meta['stream'])
+            streamInfo = Stream(root, channel_name, meta['data'][0])
 
             stream_queue.put(streamInfo)
 
