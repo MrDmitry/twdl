@@ -35,7 +35,7 @@ def VodStreamlink(root, vodId, start, duration):
             input_opts += ('-t', duration,)
 
         __log('downloading and transcoding')
-        res = subprocess.check_output(input_opts + Utils.transcode_options + (output_path,), stdin = twitch_stream.stdout, preexec_fn = Utils.ignore_sigint)
+        res = subprocess.check_output(input_opts + Utils.transcode_options + (output_path,), stdin = twitch_stream.stdout)
 
         __log('transcode complete')
 

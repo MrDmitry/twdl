@@ -27,7 +27,7 @@ def WorkerConcat(processing_queue, concat_queue):
 
             output_file = os.path.join(stream.root, Utils.stream_name.format(name = stream.name()))
 
-            with subprocess.Popen(('ffmpeg', '-i', last_tmp,) + Utils.copy_options + (output_file,), stdout = subprocess.PIPE, stderr = subprocess.PIPE, preexec_fn = Utils.ignore_sigint) as ffmpeg:
+            with subprocess.Popen(('ffmpeg', '-i', last_tmp,) + Utils.copy_options + (output_file,), stdout = subprocess.PIPE, stderr = subprocess.PIPE) as ffmpeg:
                 exit_code = ffmpeg.wait()
                 __log('finalization complete:', exit_code, stream)
 
@@ -152,7 +152,7 @@ def WorkerConcat(processing_queue, concat_queue):
 
         output_tmp = os.path.join(stream.root, tmp0Name if tmp_flag else tmp1Name)
 
-        with subprocess.Popen(('ffmpeg', '-f', 'concat', '-safe', '0', '-i', list_path,) + Utils.copy_options + (output_tmp,), stdout = subprocess.PIPE, stderr = subprocess.PIPE, preexec_fn = Utils.ignore_sigint) as ffmpeg:
+        with subprocess.Popen(('ffmpeg', '-f', 'concat', '-safe', '0', '-i', list_path,) + Utils.copy_options + (output_tmp,), stdout = subprocess.PIPE, stderr = subprocess.PIPE) as ffmpeg:
             exit_code = ffmpeg.wait()
 
             if exit_code is not 0:

@@ -29,7 +29,7 @@ def WorkerTranscode(tc_queue, concat_queue):
 
         shouldTranscode = True
 
-        with subprocess.Popen(('ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'program_stream=width,height', '-of', 'csv=s=x:p=0', ts.tsFilepath(),), stdout = subprocess.PIPE, stderr = subprocess.PIPE, preexec_fn = Utils.ignore_sigint) as ffprobe:
+        with subprocess.Popen(('ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'program_stream=width,height', '-of', 'csv=s=x:p=0', ts.tsFilepath(),), stdout = subprocess.PIPE, stderr = subprocess.PIPE) as ffprobe:
             exit_code = ffprobe.wait()
             out, err = ffprobe.communicate()
 
@@ -43,7 +43,7 @@ def WorkerTranscode(tc_queue, concat_queue):
         __log(ts.id, 'transcode' if shouldTranscode else 'copy', 'started')
 
         ffmpeg_opts = ('ffmpeg', '-y', '-i', ts.tsFilepath(),) + (Utils.transcode_options if shouldTranscode else Utils.copy_options) + (ts.tcFilepath(),)
-        with subprocess.Popen(ffmpeg_opts, stdout = subprocess.PIPE, stderr = subprocess.PIPE, preexec_fn = Utils.ignore_sigint) as ffmpeg:
+        with subprocess.Popen(ffmpeg_opts, stdout = subprocess.PIPE, stderr = subprocess.PIPE) as ffmpeg:
             ffmpeg.wait()
             ts.checkSubprocess(ffmpeg)
 

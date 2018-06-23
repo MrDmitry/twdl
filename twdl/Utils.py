@@ -45,9 +45,6 @@ def remove_file(path):
         __log('[remove]', 'exception caught:', e)
         pass
 
-def ignore_sigint():
-    os.setpgrp()
-
 def process_config(current_file, config):
     default_config = {
         'root': os.path.realpath(current_file),
