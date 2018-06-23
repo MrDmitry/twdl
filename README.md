@@ -1,8 +1,10 @@
 # twdl - Twitch livestream/vod downloader
 
+## Dependencies
+
 Depends on [ffmpeg](https://github.com/FFmpeg/FFmpeg) for downloading livestreams and transcoding video files
 
-Depends on [streamlink])(https://github.com/streamlink/streamlink) for downloading VODs
+Depends on [streamlink](https://github.com/streamlink/streamlink) for downloading VODs
 
 Python dependencies: requests, m3u8, json
 
