@@ -28,7 +28,7 @@ def VodStreamlink(root, vodId, start, duration):
 
     output_path = os.path.join(root, Utils.vod_name.format(elapsed = elapsed.replace(':', '-'), vodId = vodId))
 
-    with subprocess.Popen(('streamlink', '--stdout', '--hls-start-offset', elapsed, '--hls-segment-threads=4', url, 'source,1080p60,1080p50,900p60,900p50,720p60,720p50,1080,900,720,best'), stdout=subprocess.PIPE, preexec_fn = Utils.ignore_sigint) as twitch_stream:
+    with subprocess.Popen(('streamlink', '--stdout', '--hls-start-offset', elapsed, '--hls-segment-threads=4', url, 'source,1080p60,1080p50,900p60,900p50,720p60,720p50,1080,900,720,best'), stdout=subprocess.PIPE) as twitch_stream:
         input_opts = ('ffmpeg', '-y', '-i', '-',)
 
         if duration is not None:
