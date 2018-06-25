@@ -5,7 +5,6 @@
 # Stream monitoring routine module
 
 import json
-import os
 import random
 import requests
 import sys
@@ -15,11 +14,8 @@ from datetime import datetime
 from . import Stream
 from . import Utils
 
-def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
-    """ Worker class for detecting active Streams
-        If there is a live stream going, checks status every 7 seconds,
-        otherwise checks every 2 seconds
-    """
+def WorkerStream(stopSignal, headers, root_dir, online_tick, offline_tick, channel_name, stream_queue):
+    """ Worker class for detecting active Streams """
     STREAM_API = 'https://api.twitch.tv/helix/streams/?user_login={channel}&p={random}'
 
     def __log(*argv):
@@ -27,11 +23,13 @@ def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
 
     __log('starting')
 
-    timeout = 2
+    timeout = offline_tick
 
     streamLive = None
     meta_raw = None
     meta = None
+
+    lastStream = None
 
     while not stopSignal.isSet():
         url = STREAM_API.format(channel = channel_name, random = random.randint(0,1E7))
@@ -40,8 +38,8 @@ def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
             meta_raw = requests.get(url, headers = headers)
             meta = json.loads(meta_raw.text)
         except:
-            e = sys.exc_info()[0]
-            __log('exception caught:', e)
+            e = sys.exc_info()[1]
+            __log('exception caught:', repr(e))
             continue
 
         if 'data' not in meta:
@@ -49,28 +47,29 @@ def WorkerStream(stopSignal, headers, root_dir, channel_name, stream_queue):
             continue
 
         if len(meta['data']) > 0:
-            root = os.path.join(root_dir, channel_name, '{id}'.format(id = meta['data'][0]['id']))
+            streamInfo = Stream(root_dir, channel_name, meta['data'][0], None)
 
-            ts_path = os.path.join(root, Utils.TS_DIR)
-            tc_path = os.path.join(root, Utils.TC_DIR)
-            log_path = os.path.join(root, Utils.LOG_DIR)
+            if lastStream is not None:
+                if streamInfo != lastStream:
+                    lastStream.alive = False
+                    stream_queue.put((lastStream, lastStream))
 
-            Utils.create_dir_if_needed(ts_path)
-            Utils.create_dir_if_needed(tc_path)
-            Utils.create_dir_if_needed(log_path)
-
-            streamInfo = Stream(root, channel_name, meta['data'][0])
-
-            stream_queue.put(streamInfo)
+            lastStream = streamInfo
+            stream_queue.put((streamInfo, streamInfo))
 
             if streamLive is not True:
                 streamLive = True
-                timeout = 7
+                timeout = online_tick
                 __log('stream is live:', streamInfo)
         else:
+            if lastStream is not None:
+                lastStream.alive = False
+                stream_queue.put((lastStream, lastStream))
+                lastStream = None
+
             if streamLive is not False:
                 streamLive = False
-                timeout = 2
+                timeout = offline_tick
                 __log('stream is offline')
 
         stopSignal.wait(timeout)

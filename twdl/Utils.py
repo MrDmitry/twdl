@@ -20,7 +20,7 @@ copy_options = ('-c', 'copy', '-bsf:a', 'aac_adtstoasc',)
 
 valid_chars = '-_.() %s%s' % (string.ascii_letters, string.digits)
 
-stream_name = '{name}.mp4'
+stream_name = '[{start:07d}-{end:07d}] {name}.mp4'
 vod_name = '{vodId} - {elapsed}.mp4'
 
 def __log(*argv):
@@ -33,7 +33,7 @@ def create_dir_if_needed(path):
             os.makedirs(path)
             __log('[dir]', 'success', path)
         except OSError as e:
-            __log('[dir]', 'exception caught:', e)
+            __log('[dir]', 'exception caught:', repr(e))
             pass
 
 def remove_file(path):
@@ -42,12 +42,15 @@ def remove_file(path):
         os.remove(path)
         __log('[remove]', 'success')
     except OSError as e:
-        __log('[remove]', 'exception caught:', e)
+        __log('[remove]', 'exception caught:', repr(e))
         pass
 
 def process_config(current_file, config):
     default_config = {
         'root': os.path.realpath(current_file),
+        'online_tick': 60,
+        'offline_tick': 180,
+        'm3u8_tick': 5,
         'twitch_headers': {
             'Client-ID': ''
         }
@@ -62,8 +65,8 @@ def process_config(current_file, config):
                 for k, v in cfg.items():
                     result[k] = v
         except:
-            e = sys.exc_info()[0]
-            __log('exception caught:', e)
+            e = sys.exc_info()[1]
+            __log('exception caught:', repr(e))
             result = default_config
 
     result['root'] = os.path.realpath(result['root'])

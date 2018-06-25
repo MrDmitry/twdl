@@ -35,30 +35,27 @@ def main(args, config):
     __log('root directory:', config['root'])
     __log('starting listening for', args.channel_name)
 
-    stream_queue = queue.Queue()
+    stream_queue = queue.PriorityQueue()
 
     dl_queue = queue.PriorityQueue()
     processing_queue = queue.PriorityQueue()
-    tc_queue = queue.PriorityQueue()
+    # tc_queue = queue.PriorityQueue()
     concat_queue = queue.PriorityQueue()
 
-    w_stream = threading.Thread(target = twdl.WorkerStream, args = (stopSignal, headers, config['root'], args.channel_name, stream_queue,))
+    w_stream = threading.Thread(target = twdl.WorkerStream, args = (stopSignal, headers, config['root'], config['online_tick'], config['offline_tick'], args.channel_name, stream_queue,))
     w_stream.start()
 
-    w_m3u8 = threading.Thread(target = twdl.WorkerM3U8, args = (headers, stream_queue, dl_queue,))
+    w_m3u8 = threading.Thread(target = twdl.WorkerM3U8, args = (stopSignal, headers, config['root'], config['m3u8_tick'], args.channel_name, dl_queue,))
     w_m3u8.start()
 
     w_dl = []
 
     for i in range(4):
-        w = threading.Thread(target = twdl.WorkerDL, args = (dl_queue, processing_queue, tc_queue,))
+        w = threading.Thread(target = twdl.WorkerDL, args = (dl_queue, processing_queue, concat_queue,))
         w_dl.append(w)
         w.start()
 
-    w_transcode = threading.Thread(target = twdl.WorkerTranscode, args = (tc_queue, concat_queue,))
-    w_transcode.start()
-
-    w_concat = threading.Thread(target = twdl.WorkerConcat, args = (processing_queue, concat_queue,))
+    w_concat = threading.Thread(target = twdl.WorkerConcat, args = (processing_queue, concat_queue, stream_queue))
     w_concat.start()
 
     stopSignal.wait()
@@ -66,8 +63,6 @@ def main(args, config):
     __log('waiting for stream worker')
 
     w_stream.join()
-
-    stream_queue.put(None)
 
     __log('waiting for M3U8 worker')
 
@@ -81,15 +76,9 @@ def main(args, config):
     for t in w_dl:
         t.join()
 
-    __log('waiting for transcode worker')
-
-    tc_queue.put((twdl.Segment(sys.maxsize, '', None), None))
-    w_transcode.join()
-
     __log('waiting for concat worker')
 
-    processing_queue.put((twdl.Segment(sys.maxsize, '', None), None))
-    concat_queue.put((twdl.Segment(sys.maxsize, '', None), None))
+    stream_queue.put((twdl.Stream(None, '', None, datetime.now()), None))
     w_concat.join()
 
     __log('exiting')

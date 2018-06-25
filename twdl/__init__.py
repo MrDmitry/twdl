@@ -9,6 +9,5 @@ from .WorkerConcat import *
 from .WorkerDL import *
 from .WorkerM3U8 import *
 from .WorkerStream import *
-from .WorkerTranscode import *
 from .VodFfmpeg import *
 from .VodStreamlink import *

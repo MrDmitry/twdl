@@ -44,8 +44,8 @@ def VodFfmpeg(root, headers, vodId, start, end, duration):
                 token = data['token']
                 break
             except:
-                e = sys.exc_info()[0]
-                __log('[token-sig]', 'exception caught:', e)
+                e = sys.exc_info()[1]
+                __log('[token-sig]', 'exception caught:', repr(e))
                 retryCount -= 1
                 time.sleep(0.2)
                 continue
@@ -68,8 +68,8 @@ def VodFfmpeg(root, headers, vodId, start, end, duration):
                 m3u8_obj = m3u8.loads(r.text)
                 break
             except:
-                e = sys.exc_info()[0]
-                __log('[stream]', 'exception caught:', e)
+                e = sys.exc_info()[1]
+                __log('[stream]', 'exception caught:', repr(e))
                 retryCount -= 1
                 time.sleep(0.2)
                 continue
@@ -95,7 +95,7 @@ def VodFfmpeg(root, headers, vodId, start, end, duration):
                 output_path = os.path.join(root, output_filename)
                 tw_path = os.path.join(root, 'vod_{}'.format(output_filename))
 
-                dl_opts = ('ffmpeg',)
+                dl_opts = ('ffmpeg', '-y')
                 dl_opts += ('-i', p.uri,)
 
                 if start is not None:
@@ -117,7 +117,7 @@ def VodFfmpeg(root, headers, vodId, start, end, duration):
 
                 __log('download complete, transcoding')
 
-                with subprocess.Popen(('ffmpeg', '-i', tw_path,) + (Utils.transcode_options if '900p60' in p.media[0].name else Utils.copy_options) + (output_path,)) as ffmpeg_transcode:
+                with subprocess.Popen(('ffmpeg', '-y', '-i', tw_path,) + (Utils.transcode_options if p.media[0].name is not '1080p60' else Utils.copy_options) + (output_path,)) as ffmpeg_transcode:
                     ffmpeg_transcode.wait()
 
                 __log('transcode complete')

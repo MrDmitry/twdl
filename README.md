@@ -11,14 +11,18 @@ Python dependencies: requests, m3u8, json
 ## live.py
 
 - Listens for live twitch streams identified by channel name
-- While stream is live, downloads chunks of stream and transcodes them
-- If chunks are not 1080p, they are upscaled to 1080p (`ffmpeg` options are located in `twdl/Utils.py`)
-- After processing chunks are placed on a queue and stitched back together
+- While stream is live, downloads chunks of stream
+- Periodically concatenate segments to form a chunk (frequency is configured via `online_tick` and `offline_tick` config parameters)
+- If chunk is not of expected resolution (`1920x1080`, `1280x720`, `854x480`, `640x360`, `426x240`), it is upscaled to `1920x1080` (`ffmpeg` options are located in `twdl/Utils.py`), otherwise it's copied as-is
+- Add processed chunk to the current stream recording
 
 Example config file:
 ```json
 {
     "root": "/home/user/twdl",
+    "online_tick": 60,
+    "offline_tick": 180,
+    "m3u8_tick": 5,
     "twitch_headers": {
         "Client-ID": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     }
@@ -54,7 +58,7 @@ Example config file:
 }
 ```
 
-Note: `twitch_headers` section in configuration file is only required with `-ffmpeg` option
+Note: `twitch_headers` section in configuration file is required when started with `-ffmpeg` option
 
 Usage:
 ```
